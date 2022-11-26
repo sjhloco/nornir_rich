@@ -17,7 +17,7 @@ pip install git+https://github.com/sjhloco/nornir_rich@format_string_result
 To reference in a requirement file:
 
 ```bash
-nornir-utils @ git+https://github.com/sjhloco/nornir_rich@format_string_result
+nornir-rich @ git+https://github.com/sjhloco/nornir_rich@849923339ac0ade999059b7cd2a28890dfcaf4b2
 ```
 
 ## Install
