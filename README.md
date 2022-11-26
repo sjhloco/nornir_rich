@@ -2,11 +2,11 @@
 
 ## My branch (format_string_result)
 
-If more than the one Result variable (*print_result(results, vars=["diff", "result", etc])*) is passed into *print_result* it renders (with *render_scope*) it as a dictionary resulting in the printed string output loses its formatting (new lines not honoured). This is only the case for multiple variables, if just use *print_result(results)* it doesnt render it so you dont have the problem.
+If more than the one *Result* variable (*print_result(results, vars=["diff", "result", etc])*) is passed into ***print_result*** it renders (with *render_scope*) it as a dictionary resulting in the printed string output losing its formatting (new lines not honoured). This is only the case for multiple variables, if just use *print_result(results)* it doesnt render it so you dont have the problem.
 
-As I am screen scraping command outputs with the possibility of multiple variables I added a new *render_panelgroup* method to make the string look like it is a dictionary (using *rich.text*) and group the different result variables under the one panel using [Panel groups through the Rich group() decorator](https://rich.readthedocs.io/en/stable/group.html).
+As I am screen scraping command outputs and in some situations use multiple variables I have added a new *render_panelgroup* method to make the string look like it is a dictionary (using *rich.text*) grouping the different result variables under the one panel using [panel groups through the Rich group() decorator](https://rich.readthedocs.io/en/stable/group.html).
 
-As it changes nornir_rich operation in way the output is displayed and is more custom to what I want to achieve didnt think was worth putting in as a pull request.
+As this changes nornir_rich operation in way the output is displayed and is more custom to what I want to achieve didnt think was worth putting in as a pull request.
 
 To install this branch:
 
