@@ -8,12 +8,14 @@ from nornir.core.inventory import Inventory
 from nornir.core.task import AggregatedResult, MultiResult, Result
 
 from rich import print
+from rich.console import group
 from rich.columns import Columns
 from rich.panel import Panel
 from rich.scope import render_scope
 from rich.padding import PaddingDimensions
 from rich.pretty import Pretty
 from rich.protocol import is_renderable, rich_cast
+from rich.text import Text
 
 
 LOCK = threading.Lock()
@@ -96,35 +98,68 @@ class RichHelper:
         )
         return panel
 
-    def print_result(self, result: Result) -> Union[Panel, None]:
+    @group()
+    def render_panelgroup(self, result: Result) -> Union[Panel, None]:
         """
-        Render individual task result
+        Render task result or if string make look like dict but keep string format
 
         Arguments:
-          result: Individual result to render
+          result: Individual result
+          host: Hostname
+
+        Return:
+          rich.console.Group
+        """
+        for x in self.vars:
+            # Dont render strings (to honour /n) but prettify to make look like was rendered
+            if isinstance(getattr(result, x, ""), str):
+                if len(getattr(result, x, "")) != 0:
+                    format_result = getattr(result, x).replace("\n", "\n         ")
+                    result_str = Text(f"{x} = " + format_result.lstrip())
+                    result_str.stylize("italic yellow", 0, len(x))
+                    result_str.stylize("red", len(x) + 1, len(x) + 2)
+                    result_data = Panel.fit(
+                        result_str,
+                        border_style="scope.border",
+                        padding=(0, 1),
+                    )
+                    yield result_data
+            # Render non-string objects, if dict render that rather than encasing in new dict (better for nornir validate)
+            elif getattr(result, x, None) != None:
+                if isinstance(getattr(result, x), dict):
+                    yield render_scope(getattr(result, x))
+                else:
+                    yield render_scope({x: getattr(result, x)})
+
+    def print_result(self, result: Result) -> Union[Panel, None]:
+        """
+        Print individual task result
+
+        Arguments:
+          result: Individual result to be passed to be rendered
 
         Return:
           rich.panel.Panel
         """
         if result.severity_level < self.severity_level:
             return None
+
         if self.vars:
-            return Panel(
-                render_scope({x: getattr(result, x) for x in self.vars}),
-                title=result.name,
-                style="red" if result.failed else "green",
-            )
+            # Stops empty panels from being printed
+            if result.result != None:
+                return Panel.fit(self.render_panelgroup(result), title=result.name)
 
         result_data: RenderableType
         if not is_renderable(result.result):
             result_data = Pretty(result.result) if result.result is not None else ""
         else:
             result_data = rich_cast(result.result)
-        return Panel(
-            result_data,
-            title=result.name,
-            style="red" if result.failed else "green",
-        )
+        if result.result != None:
+            return Panel(
+                result_data,
+                title=result.name,
+                style="red" if result.failed else "green",
+            )
 
     def print_scopes(self, scopes: Dict[str, Any]) -> Columns:
         if self.vars:
